@@ -17,11 +17,11 @@ minimal_mistakes_skin    : "default" # "air", "aqua", "contrast", "dark", "dirt"
 # Site Settings
 locale                   : "en-US"
 rtl                      : # true, false (default) # turns direction of the page into right to left for RTL languages
-title                    : "Yun-Vis"
+title                    : "Mobile Coding CheatSheet"
 title_separator          : "-"
 subtitle                 : # site tagline that appears below site title in masthead
 name                     : "Hsiang-Yun Wu"
-description              : "This website documents Hsiang-Yun Wu's reseach and teaching activities"
+description              : "This website documents Hsiang-Yun Wu's teaching activities on mobile coding"
 url                      : # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
