@@ -78,7 +78,7 @@ last_modified_at: 2025-10-31
 
 - Modifier: Compose uses a Modifier object, which is a collection of elements that decorate or modify the behavior of Compose UI elements. 
 
-- Annotation: The function is annotated with the @Composable annotation. All composable functions must have this annotation. This annotation informs the Compose compiler that this function is intended to convert data into UI.
+- Annotation: Annotations are a means of attaching metadata to code. They don't change how your program runs, but they give extra information to the compiler or tools. The function is annotated with the @Composable annotation. All composable functions must have this annotation. This annotation informs the Compose compiler that this function is intended to convert data into UI.
 
 - Idempotent: A function is idempotent if applying it multiple times to the same input produces the same result as applying it just once. The function behaves the same way when called multiple times with the same argument, and it does not use other values such as global variables or calls to random().
 

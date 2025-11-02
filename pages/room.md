@@ -68,14 +68,172 @@ In Android, this is particularly important when using Room, because Room enforce
 
 ## Room Setup
 
+### Step 1: Adapt the Gradle script. 
+
+  - build.gradle.kts -> Project 
+  in plugin, add 
+  id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
+
+  ```kotlin
+  // Top-level build file where you can add configuration options common to all sub-projects/modules.
+  plugins {
+      alias(libs.plugins.android.application) apply false
+      alias(libs.plugins.kotlin.android) apply false
+      alias(libs.plugins.kotlin.compose) apply false
+      id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
+  }
+  ```
+
+    - id("com.google.devtools.ksp"): This refers to the Gradle plugin ID. com.google.devtools.ksp is the Kotlin Symbol Processing (KSP) plugin, which is similar to annotation processors in Java (kapt) but optimized for Kotlin. KSP allows libraries to generate code at compile time based on annotations or other symbols.
+
+    - version "1.9.0-1.0.13": This specifies the version of the KSP plugin you want to use.It ensures Gradle knows which version of the plugin to download and apply.
+
+    - apply false: This is a subtle but important part.
+    apply false does not apply the plugin to the project immediately. Instead, it just makes the plugin available so that it can be applied in subprojects or modules individually.This is common in a multi-module project, where you might want KSP only in certain modules (like app or data) rather than in the root project.
+
+  - build.gradle.kts -> Module 
+  in plugin (on the top), add 
+  id("com.google.devtools.ksp")
+
+  ```kotlin
+  // At the top
+  plugins {
+      alias(libs.plugins.android.application)
+      alias(libs.plugins.kotlin.android)
+      alias(libs.plugins.kotlin.compose)
+      id("com.google.devtools.ksp")
+  }
+
+  // At the bottom
+  dependencies {
+
+      // room setup
+      implementation("androidx.room:room-ktx:2.8.3")
+      implementation("androidx.room:room-runtime:2.8.3")
+      // In case of error, press gradle sync
+      // It will download the room dependency and install it
+      ksp("androidx.room:room-compiler:2.8.3")
+      // ...
+  }
+  ```
+### Step 2: Create a package called db and a data class called ContactEntity
+
 ```kotlin
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.kotlin.android) apply false
-    alias(libs.plugins.kotlin.compose) apply false
+package at.uastw.contactsapp.data.db
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+
+@Entity(tableName = "contacts")
+data class ContactEntity(
+    @PrimaryKey(autoGenerate = true)
+    val _id: Int = 0, // database specific. why zero?
+    val name: String,
+    val age: Int,
+    // Change the name of column for room, add
+    @ColumnInfo("telephone_number")
+    val telephoneNumber: String
+)
+```
+
+### Step 3: Under db package, create a DAO using Kotlin Interface and call it ContactsDao
+
+```kotlin
+package at.uastw.contactsapp.data.db
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface ContactDao {
+
+    //    @Insert
+    // There are strategies implemented
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun addContact(contactEntity: ContactEntity)
+
+    @Update
+    fun updateContact(contactEntity: ContactEntity)
+
+    @Delete
+    fun deleteContact(contactEntity: ContactEntity)
+
+    // SQL keywords are not case sensitive, keep it upper case to distinct from user-defined content
+    @Query("SELECT * FROM contacts")
+    fun getAllContacts(): Flow<List<ContactEntity>>
+
+    @Query("SELECT * FROM contacts WHERE name = :contactName")
+    fun findContactsWithName(contactName: String): Flow<List<ContactEntity>>
+//    fun main(){
+//        dao.findContactsWithName("Ali")
+//    }
 }
 ```
+
+### Step 4: Under db package, create a db using Kotlin Class and call it ContactsDatabase
+
+```kotlin
+package at.uastw.contactsapp.data.db
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+
+// Typically one database for the whole app
+// One entity per table, at least one DAO where entities are used
+// Entities and Dao are all linked to the db
+// @Database(entities = [ContactEntity::class, add "," when more databases], version = 1)
+// Why version of the database? db are installed with app on individual devices.
+// We need to version our db in app development.
+@Database(entities = [ContactEntity::class], version = 1)
+abstract class ContactsDatabase : RoomDatabase() {
+    abstract fun contactsDao(): ContactsDao
+
+    // in general, the same structure for every database
+    // need to double check it
+
+    // companion object: store data at class level
+    // static in java context
+    companion object {
+
+        // concept from memory access
+        // read the main memory RAM, instead of Cache
+        // make sure to create one db instance per app (singleton pattern)
+        @Volatile
+        private var Instance: ContactsDatabase? = null
+
+        fun getDatabase(context: Context): ContactsDatabase {
+            // if the Instance is not null, return it, otherwise create a new database instance.
+            // synchronized: only one thread can enter this block
+            return Instance ?: synchronized(this) {
+                // context for the resources
+                val instance = Room.databaseBuilder(context, ContactsDatabase::class.java, "contact_database")
+                    /**
+                     * Setting this option in your app's database builder means that Room
+                     * permanently deletes all data from the tables in your database when it
+                     * attempts to perform a migration with no defined migration path.
+                     */
+                    // Do not use in production app as it deleted all inputs from the users
+                    // .fallbackToDestructiveMigration() -> deprecated
+                    .fallbackToDestructiveMigration(false)
+                    .build()
+                Instance = instance
+                return instance
+            }
+        }
+    }
+}
+```
+
+### Step 5: Compile and see the implementation
 
 # Terminology
 
@@ -112,3 +270,7 @@ plugins {
 - Data Graph: In Room, a data graph refers to the network of related data objects (entities) that are linked together through relationships
 
 - [Singleton]: The singleton pattern is a software design pattern that ensures a class has only one instance and provides a global point of access to it. It is used when a program needs a single object for tasks like managing a cache, handling logging, or controlling access to a database connection. 
+
+# Open Questions
+
+- Add New -> Kolin file and class in Android Studio
