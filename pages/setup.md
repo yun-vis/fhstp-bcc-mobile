@@ -36,12 +36,35 @@ last_modified_at: 2025-08-22
 - double shift -> enable search -> search Font size -> enable change font size with Ctrl + mouse wheel in 
 - andriod view -> res (resources)
 
+## Shortcut
+- Ctrl+Alt+L: auto formating
+- Ctrl+Alt+B: Go to Implementation
+- Ctrl+B: Go to Declaration
+- Alt+Enter: Show quick fix
+- Ctrl+Shift+O: Sync with Gradle or set auto syn
+
+### Notes
+- When it comes to navigation bar, one needs to run the simulator in stead of preview
+- Copy paste codes does not alway produce valid codes, need to double check when typing
+
+
+# Editor
+- Word Wrap: Main Menu -> View -> Active Editor -> Soft-Wrap
+- 
+
 # Terminology
 
 - Annotations: Annotations are a means of attaching metadata to code. [Link](https://kotlinlang.org/docs/annotations.html#)
+
 - dp: [Density-independent pixels](https://developer.android.com/guide/topics/resources/more-resources#Dimension)
+
 - Idempotent: In Android Jetpack Compose, an idempotent composable function is one that produces the same output for the same input, even if it is called multiple times during recomposition. 
+
 - operation no side effect -> it does not alter any external state
+
+- [Android Jetpack](https://developer.android.com/jetpack): Jetpack is a suite of libraries to help you follow best practices, reduce boilerplate code, and write code that works consistently across Android versions, devices, and form factors so you can focus on the code you care about.
+  
+- [Modern Android Development (MAD) Skills]: Learn about best practices and recommended Architecture for building robust, production-quality apps.
 
 # Mobile Desktop Sharing
 
