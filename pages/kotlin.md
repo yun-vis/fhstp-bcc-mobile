@@ -9,12 +9,10 @@ header:
 last_modified_at: 2025-11-01
 ---
 
-# Syntax
+# Syntax Quick Start
 
 - [W3 School Kotlin Tutorial](https://www.w3schools.com/kotlin/index.php)
 
-# [Kotlin coroutines on Android](https://developer.android.com/kotlin/coroutines)
-A coroutine is a concurrency design pattern that you can use on Android to simplify code that executes asynchronously. Coroutines were added to Kotlin in version 1.3 and are based on established concepts from other languages.
 
 ## enum class
 
@@ -31,10 +29,19 @@ If you need to perform more complex operations during instance creation, place t
 ## [Companion objects](https://kotlinlang.org/docs/object-declarations.html#companion-objects)
 Companion objects allow you to define class-level functions and properties tied to a class, simplifying the creation and management of these instances.
 
+## [object keyword](https://kotlinlang.org/docs/object-declarations.html)
+In Kotlin, objects allow you to define a class and create an instance of it in a single step. This is useful when you need either a reusable singleton instance or a one-time object. The object keyword in Kotlin has two main uses: (1) To declare a singleton — a class with only one instance. (2) To declare an anonymous object (like an inline implementation of an interface or abstract class).
+
+## [when keyword](https://kotlinlang.org/docs/control-flow.html#when-expressions-and-statements) 
+When is a conditional expression that runs code based on multiple possible values or conditions. It's similar to the switch statement in Java, C, and other languages.
+
+## [delegation](https://kotlinlang.org/docs/delegation.html)
+The Delegation pattern has proven to be a good alternative to implementation inheritance, and Kotlin supports it natively requiring zero boilerplate code.
+
+## as keyword
 
 # Terminology
 
-- [Concurrency design pattern](https://www.baeldung.com/concurrency-principles-patterns): Concurrency design patterns are solutions for managing multiple operations that appear to run simultaneously, often in multi-threaded programs.
 
 - [Higher-order functions](https://kotlinlang.org/docs/lambdas.html): A higher-order function is a function that takes functions as parameters, or returns a function.
 

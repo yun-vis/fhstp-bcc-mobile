@@ -8,8 +8,10 @@ main:
     url: /pages/ui
   - title: "Framework"
     url: /pages/framework
-  - title: "Room"
-    url: /pages/room
+  - title: "Room Setup"
+    url: /pages/roomsetup
+  - title: "Room Usage"
+    url: /pages/roomuse
   - title: "API"
     url: /pages/api
   # - title: "Sitemap"

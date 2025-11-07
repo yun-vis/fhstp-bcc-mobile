@@ -2,12 +2,14 @@
 # permalink: /404.html
 layout: single
 classes: wide
-title: "Data"
+title: "Room Setup"
 header:
   image: /assets/images/teaser/teaser.png
   caption: "Image credit: [**Yun**](http://yun-vis.net)"
 last_modified_at: 2025-08-25
 ---
+
+# Room Env Setup
 
 # Import the ContactApp project from the previous lecture
 
@@ -80,6 +82,7 @@ In Android, this is particularly important when using Room, because Room enforce
       alias(libs.plugins.android.application) apply false
       alias(libs.plugins.kotlin.android) apply false
       alias(libs.plugins.kotlin.compose) apply false
+      // add the following 
       id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
   }
   ```
@@ -101,11 +104,15 @@ In Android, this is particularly important when using Room, because Room enforce
       alias(libs.plugins.android.application)
       alias(libs.plugins.kotlin.android)
       alias(libs.plugins.kotlin.compose)
+      // add the following
       id("com.google.devtools.ksp")
   }
 
   // At the bottom
   dependencies {
+
+      // add material 3, but already exists
+      implementation(libs.androidx.compose.material3)
 
       // room setup
       implementation("androidx.room:room-ktx:2.8.3")
@@ -118,6 +125,7 @@ In Android, this is particularly important when using Room, because Room enforce
   ```
 ### Step 2: Create a package called db and a data class called ContactEntity
 
+ContactEntity.kt
 ```kotlin
 package at.uastw.contactsapp.data.db
 
@@ -127,9 +135,10 @@ import androidx.room.PrimaryKey
 
 
 @Entity(tableName = "contacts")
+// @Entity is enough as the table name go with the class name by default. One can also define foreign key here.
 data class ContactEntity(
-    @PrimaryKey(autoGenerate = true)
-    val _id: Int = 0, // database specific. why zero?
+    @PrimaryKey(autoGenerate = true) // go with the next line
+    val _id: Int = 0, // database specific. set default to 0. shouldn't it be a default value null?
     val name: String,
     val age: Int,
     // Change the name of column for room, add
@@ -140,6 +149,7 @@ data class ContactEntity(
 
 ### Step 3: Under db package, create a DAO using Kotlin Interface and call it ContactsDao
 
+ContactsDao.kt
 ```kotlin
 package at.uastw.contactsapp.data.db
 
@@ -152,10 +162,11 @@ import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ContactDao {
+interface ContactsDao {
 
     //    @Insert
     // There are strategies implemented
+    // @Upsert: if exist then update, otherwise insert
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun addContact(contactEntity: ContactEntity)
 
@@ -170,6 +181,7 @@ interface ContactDao {
     fun getAllContacts(): Flow<List<ContactEntity>>
 
     @Query("SELECT * FROM contacts WHERE name = :contactName")
+    // flow is a ds that will notify us about there is a change in the table. in practice, the flow will emit a new list of contact
     fun findContactsWithName(contactName: String): Flow<List<ContactEntity>>
 //    fun main(){
 //        dao.findContactsWithName("Ali")
@@ -179,6 +191,7 @@ interface ContactDao {
 
 ### Step 4: Under db package, create a db using Kotlin Class and call it ContactsDatabase
 
+ContactsDatabase.kt
 ```kotlin
 package at.uastw.contactsapp.data.db
 
@@ -193,7 +206,10 @@ import androidx.room.RoomDatabase
 // @Database(entities = [ContactEntity::class, add "," when more databases], version = 1)
 // Why version of the database? db are installed with app on individual devices.
 // We need to version our db in app development.
-@Database(entities = [ContactEntity::class], version = 1)
+@Database(
+    entities = [ContactEntity::class],
+    version = 1
+)
 abstract class ContactsDatabase : RoomDatabase() {
     abstract fun contactsDao(): ContactsDao
 
@@ -271,6 +287,10 @@ abstract class ContactsDatabase : RoomDatabase() {
 
 - [Singleton]: The singleton pattern is a software design pattern that ensures a class has only one instance and provides a global point of access to it. It is used when a program needs a single object for tasks like managing a cache, handling logging, or controlling access to a database connection. 
 
+- unique identifier (UID): A unique identifier (UID) is an identifier that is guaranteed to be unique among all identifiers used for those objects and for a specific purpose. For example, in database management, unique identifiers distinguish one record from another, which allows data to be retrievable quickly and efficiently without ambiguity or confusion. They can also link different records from different tables easily.
+
+
 # Open Questions
 
 - Add New -> Kolin file and class in Android Studio
+- Add material 3 to the current project
