@@ -31,6 +31,18 @@ https://www.youtube.com/watch?v=bOd3wO0uFr8
 
 # [Guide to app architecture](https://developer.android.com/topic/architecture/intro)
 
+- [UI Layer](https://developer.android.com/topic/architecture/ui-layer): The role of the UI is to display the application data on the screen and also to serve as the primary point of user interaction. Whenever the data changes, either due to user interaction (like pressing a button) or external input (like a network response), the UI should update to reflect those changes. Effectively, the UI is a visual representation of the application state as retrieved from the data layer.
+  - [UI elements](): In Android's Jetpack Compose, UI elements are created using composable functions that describe the UI's appearance and behavior. These functions are the building blocks and can be nested to create complex interfaces, ranging from basic text and buttons to more complex components like app bars, navigation drawers, and date pickers, often built using the Material Design system. 
+  
+  - [State holders](https://developer.android.com/topic/architecture/ui-layer/stateholders): The UI layer guide discusses unidirectional data flow (UDF) as a means of producing and managing the UI State for the UI layer. It also highlights the benefits of delegating UDF management to a special class called a state holder. You can implement a state holder either through a ViewModel or a plain class. This document takes a closer look at state holders and the role they play in the UI layer.
+
+- [Domain Layer](https://developer.android.com/topic/architecture/domain-layer): The domain layer is an optional layer that sits between the UI layer and the data layer. The domain layer is responsible for encapsulating complex business logic, or simple business logic that is reused by multiple ViewModels. This layer is optional because not all apps will have these requirements. You should only use it when needed-for example, to handle complexity or favor reusability.
+
+- [Data Layer](https://developer.android.com/topic/architecture/data-layer): The data layer contains application data and business logic. The business logic is what gives value to your app—it's made of real-world business rules that determine how application data must be created, stored, and changed.
+  - [Repositories](https://developer.android.com/topic/architecture/data-layer): The data layer is made of repositories that each can contain zero to many data sources. You should create a repository class for each different type of data you handle in your app. For example, you might create a MoviesRepository class for data related to movies, or a PaymentsRepository class for data related to payments.
+  - [Data Sources](https://developer.android.com/topic/architecture/data-layer): Data sources are the origins or providers of data in your app’s data layer.
+They define how and from where data is retrieved, saved, or updated.
+
 # [SQL](https://www.w3schools.com/sql/sql_intro.asp) 
 
 SQL (Structured Query Language) is the standard language used to store, manipulate, and retrieve data in relational databases (like MySQL, PostgreSQL, Oracle, SQLite, etc.).
@@ -259,7 +271,7 @@ abstract class ContactsDatabase : RoomDatabase() {
 
 - [DataStore](https://developer.android.com/topic/libraries/architecture/datastore)
 
-- [Persistent models](): A persistent data model is a way to store data in a non-volatile storage system (e.g., hard drives, SSDs) so it remains available after power cycles and application closures, unlike ephemeral data stored in volatile memory like RAM. 
+- [Persistent models](): A persistent data model is a way to store data in a non-volatile storage system (e.g., hard drives, SSDs) so it remains available after power cycles and application closures, unlike ephemeral data stored in volatile memory like RAM. Persistence in data management means storing data permanently so that it continues to exist independently of the process or program that created it, ensuring durability, consistency, and long-term accessibility.
 
 - [Single Source of Truth (SSOT)](): The SSOT is the owner of that data, and only the SSOT can modify or mutate it. To achieve this, the SSOT exposes the data using an immutable type, and to modify the data, the SSOT exposes functions or receive events that other types can call.
 
@@ -288,7 +300,6 @@ abstract class ContactsDatabase : RoomDatabase() {
 - [Singleton]: The singleton pattern is a software design pattern that ensures a class has only one instance and provides a global point of access to it. It is used when a program needs a single object for tasks like managing a cache, handling logging, or controlling access to a database connection. 
 
 - unique identifier (UID): A unique identifier (UID) is an identifier that is guaranteed to be unique among all identifiers used for those objects and for a specific purpose. For example, in database management, unique identifiers distinguish one record from another, which allows data to be retrievable quickly and efficiently without ambiguity or confusion. They can also link different records from different tables easily.
-
 
 # Open Questions
 

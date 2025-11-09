@@ -64,7 +64,7 @@ last_modified_at: 2025-08-22
 
 - [Android Jetpack](https://developer.android.com/jetpack): Jetpack is a suite of libraries to help you follow best practices, reduce boilerplate code, and write code that works consistently across Android versions, devices, and form factors so you can focus on the code you care about.
   
-- [Modern Android Development (MAD) Skills]: Learn about best practices and recommended Architecture for building robust, production-quality apps.
+- [Modern Android Development (MAD) Skills](): Learn about best practices and recommended Architecture for building robust, production-quality apps.
 
 # Mobile Desktop Sharing
 

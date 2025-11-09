@@ -54,3 +54,5 @@ last_modified_at: 2025-11-01
 - Business logic: Business logic is the set of rules, calculations, and algorithms that govern how a software application handles and processes data according to a business's real-world rules.
 
 - Application Sandbox: The Android platform takes advantage of the Linux user-based protection to identify and isolate app resources. This isolates apps from each other.
+
+- [UI Layer]
