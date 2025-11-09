@@ -6,7 +6,7 @@ title: "Room Setup"
 header:
   image: /assets/images/teaser/teaser.png
   caption: "Image credit: [**Yun**](http://yun-vis.net)"
-last_modified_at: 2025-08-25
+last_modified_at: 2025-11-09
 ---
 
 # Import the ContactsApp project 
@@ -16,6 +16,7 @@ last_modified_at: 2025-08-25
 - Import the ContactsApp project from the previous lecture
 - Click File > New > Import Project.
 - In the window that appears, navigate to the root directory of the project you want to import and click OK.
+- It takes sometime until the Andriod app explorer is built.
 
 # [Guide to app architecture](https://developer.android.com/topic/architecture/intro)
 
@@ -249,7 +250,7 @@ abstract class ContactsDatabase : RoomDatabase() {
                 // build database
                 // context: Application or Activity context. For the resources.
                 // ContactsDatabase::class.java: The database class to instantiate.
-                "contact_database": The physical database filename.
+                // "contact_database": The physical database filename.
                 // .fallbackToDestructiveMigration(false): Prevents automatic deletion of old data if a version conflict occurs (if true, it would recreate the DB when a version mismatch happens).
                 val instance = Room.databaseBuilder(context, ContactsDatabase::class.java, "contact_database")
                     /**
