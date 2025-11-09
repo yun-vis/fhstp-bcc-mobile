@@ -9,25 +9,13 @@ header:
 last_modified_at: 2025-08-25
 ---
 
-# Room Env Setup
-
-# Import the ContactApp project from the previous lecture
+# Import the ContactsApp project 
 
 ## Import an existing project
+
+- Import the ContactsApp project from the previous lecture
 - Click File > New > Import Project.
 - In the window that appears, navigate to the root directory of the project you want to import and click OK.
-
-
-# Data
-
-The codelab from the Android Developer documentation is too old and not usefull anymore, but here I am sending you my slides I used for the masterclass.
-Since the slides are just for reference, here is the main documentation for it:
-https://developer.android.com/training/data-storage/room
-https://developer.android.com/topic/architecture
-https://developer.android.com/kotlin/coroutines
-
-Also, since I do not have videos of my lecture on the topic, I think this YouTube video is helpful if you would like to reproduce an example for practicing:
-https://www.youtube.com/watch?v=bOd3wO0uFr8
 
 # [Guide to app architecture](https://developer.android.com/topic/architecture/intro)
 
@@ -99,12 +87,12 @@ In Android, this is particularly important when using Room, because Room enforce
   }
   ```
 
+  - Explanation:
     - id("com.google.devtools.ksp"): This refers to the Gradle plugin ID. com.google.devtools.ksp is the Kotlin Symbol Processing (KSP) plugin, which is similar to annotation processors in Java (kapt) but optimized for Kotlin. KSP allows libraries to generate code at compile time based on annotations or other symbols.
 
     - version "1.9.0-1.0.13": This specifies the version of the KSP plugin you want to use.It ensures Gradle knows which version of the plugin to download and apply.
 
-    - apply false: This is a subtle but important part.
-    apply false does not apply the plugin to the project immediately. Instead, it just makes the plugin available so that it can be applied in subprojects or modules individually.This is common in a multi-module project, where you might want KSP only in certain modules (like app or data) rather than in the root project.
+    - apply false: This is a subtle but important part.apply false does not apply the plugin to the project immediately. Instead, it just makes the plugin available so that it can be applied in subprojects or modules individually.This is common in a multi-module project, where you might want KSP only in certain modules (like app or data) rather than in the root project.
 
   - build.gradle.kts -> Module 
   in plugin (on the top), add 
@@ -127,24 +115,28 @@ In Android, this is particularly important when using Room, because Room enforce
       implementation(libs.androidx.compose.material3)
 
       // room setup
-      implementation("androidx.room:room-ktx:2.8.3")
-      implementation("androidx.room:room-runtime:2.8.3")
+      val room_version = "2.8.3"
+      implementation("androidx.room:room-ktx:$room_version")
+      implementation("androidx.room:room-runtime:$room_version")
       // In case of error, press gradle sync
       // It will download the room dependency and install it
-      ksp("androidx.room:room-compiler:2.8.3")
+      ksp("androidx.room:room-compiler:$room_version")
+
       // ...
+      // viewModel() function
+      implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+
   }
   ```
 ### Step 2: Create a package called db and a data class called ContactEntity
 
-ContactEntity.kt
+in ContactEntity.kt
 ```kotlin
 package at.uastw.contactsapp.data.db
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-
 
 @Entity(tableName = "contacts")
 // @Entity is enough as the table name go with the class name by default. One can also define foreign key here.
@@ -153,6 +145,8 @@ data class ContactEntity(
     val _id: Int = 0, // database specific. set default to 0. shouldn't it be a default value null?
     val name: String,
     val age: Int,
+    
+    // The @ColumnInfo annotation in Room is used to customize the column details of a field in your Entity (table), such as: The column name in the database.
     // Change the name of column for room, add
     @ColumnInfo("telephone_number")
     val telephoneNumber: String
@@ -161,7 +155,9 @@ data class ContactEntity(
 
 ### Step 3: Under db package, create a DAO using Kotlin Interface and call it ContactsDao
 
-ContactsDao.kt
+Room requires your DAO (Data Access Object) to be an interface (or an abstract class) so that it can automatically generate the implementation for you at compile time.
+
+in ContactsDao.kt
 ```kotlin
 package at.uastw.contactsapp.data.db
 
@@ -203,7 +199,7 @@ interface ContactsDao {
 
 ### Step 4: Under db package, create a db using Kotlin Class and call it ContactsDatabase
 
-ContactsDatabase.kt
+in ContactsDatabase.kt
 ```kotlin
 package at.uastw.contactsapp.data.db
 
@@ -219,30 +215,42 @@ import androidx.room.RoomDatabase
 // Why version of the database? db are installed with app on individual devices.
 // We need to version our db in app development.
 @Database(
-    entities = [ContactEntity::class],
+    entities = [ContactEntity::class], // The database will include one entity/table: ContactEntity.
     version = 1
 )
-abstract class ContactsDatabase : RoomDatabase() {
+abstract class ContactsDatabase : RoomDatabase() { 
+// You must extend RoomDatabase to create a Room database class. It’s abstract because Room generates the actual implementation for you at compile time.
     abstract fun contactsDao(): ContactsDao
+
+    // This is an abstract function that returns your DAO (ContactsDao). Room will automatically generate the code to return the DAO implementation when the database is built. You’ll use this to perform database operations like insert, update, query, delete, etc.
 
     // in general, the same structure for every database
     // need to double check it
 
-    // companion object: store data at class level
-    // static in java context
+    // companion object: store data at class level, as static in java context
+    // A companion object in Kotlin acts like a static object in Java — meaning it holds a single copy of variables and methods for the entire class.
+    // Here it’s used to: Hold a singleton instance of the database. Provide a thread-safe way to create or get that instance.
+
     companion object {
 
         // concept from memory access
         // read the main memory RAM, instead of Cache
         // make sure to create one db instance per app (singleton pattern)
+        // @Volatile ensures that changes made to Instance by one thread are visible to all threads immediately. Instance holds a single reference to your database so multiple parts of your app don’t create multiple copies (which could corrupt the data).
         @Volatile
         private var Instance: ContactsDatabase? = null
 
+        // Provides a global access point to your database. If the database hasn’t been created yet, it builds one.
         fun getDatabase(context: Context): ContactsDatabase {
             // if the Instance is not null, return it, otherwise create a new database instance.
             // synchronized: only one thread can enter this block
+            // Checks if Instance is null. If yes, uses synchronized(this) to ensure only one thread at a time can create the database — prevents multiple instances in multithreaded environments.
             return Instance ?: synchronized(this) {
-                // context for the resources
+                // build database
+                // context: Application or Activity context. For the resources.
+                // ContactsDatabase::class.java: The database class to instantiate.
+                "contact_database": The physical database filename.
+                // .fallbackToDestructiveMigration(false): Prevents automatic deletion of old data if a version conflict occurs (if true, it would recreate the DB when a version mismatch happens).
                 val instance = Room.databaseBuilder(context, ContactsDatabase::class.java, "contact_database")
                     /**
                      * Setting this option in your app's database builder means that Room
@@ -253,6 +261,8 @@ abstract class ContactsDatabase : RoomDatabase() {
                     // .fallbackToDestructiveMigration() -> deprecated
                     .fallbackToDestructiveMigration(false)
                     .build()
+
+                // Stores and returns the newly created database instance.
                 Instance = instance
                 return instance
             }
@@ -261,11 +271,9 @@ abstract class ContactsDatabase : RoomDatabase() {
 }
 ```
 
-### Step 5: Compile and see the implementation
+### Step 5: Compile and see the implementation under the folder /java
 
 # Terminology
-
-- [Coroutine]():
 
 - [SharedPreferences](https://developer.android.com/training/data-storage/shared-preferences): A SharedPreferences object points to a file containing key-value pairs and provides simple methods to read and write them. DataStore is a modern data storage solution that you should use instead of SharedPreferences. It builds on Kotlin coroutines and Flow, and overcomes many of the drawbacks of SharedPreferences.
 
@@ -300,6 +308,13 @@ abstract class ContactsDatabase : RoomDatabase() {
 - [Singleton]: The singleton pattern is a software design pattern that ensures a class has only one instance and provides a global point of access to it. It is used when a program needs a single object for tasks like managing a cache, handling logging, or controlling access to a database connection. 
 
 - unique identifier (UID): A unique identifier (UID) is an identifier that is guaranteed to be unique among all identifiers used for those objects and for a specific purpose. For example, in database management, unique identifiers distinguish one record from another, which allows data to be retrievable quickly and efficiently without ambiguity or confusion. They can also link different records from different tables easily.
+
+## References from Victor
+
+- [Room](https://developer.android.com/training/data-storage/room) 
+- [Architecture](https://developer.android.com/topic/architecture)
+- [Coroutines](https://developer.android.com/kotlin/coroutines)
+- [ContactsApp Tutorial](https://www.youtube.com/watch?v=bOd3wO0uFr8)
 
 # Open Questions
 
