@@ -321,3 +321,4 @@ abstract class ContactsDatabase : RoomDatabase() {
 
 - Add New -> Kolin file and class in Android Studio
 - Add material 3 to the current project
+- Data injection attack: A data injection attack is a technique in which an unauthorized person sends copied or fabricated data to a target system, compromising its integrity and reliability. Room already gives you strong protection if you use it correctly. The key idea: never build SQL by concatenating untrusted strings. Use Room’s parameter binding (or safe builders) and whitelist any dynamic SQL identifiers (table/column/order direction). Below are concrete rules and code examples in Kotlin.
