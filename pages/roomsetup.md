@@ -145,12 +145,13 @@ data class ContactEntity(
     @PrimaryKey(autoGenerate = true) // go with the next line
     val _id: Int = 0, // database specific. set default to 0. shouldn't it be a default value null?
     val name: String,
-    val age: Int,
     
     // The @ColumnInfo annotation in Room is used to customize the column details of a field in your Entity (table), such as: The column name in the database.
     // Change the name of column for room, add
     @ColumnInfo("telephone_number")
-    val telephoneNumber: String
+    val telephoneNumber: String,
+
+    val age: Int
 )
 ```
 

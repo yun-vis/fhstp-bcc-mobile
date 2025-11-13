@@ -500,6 +500,10 @@ object AppViewModelProvider {
 }
 ```
 
+Remove present database
+- Open Android Studio → View → Tool Windows → Device File Explorer.
+- Navigate to: /data/data/<your.package.name>/databases/
+- Right-click your database file (e.g., app_database)-> Delete.
 
 ```kotlin
 ```
@@ -522,6 +526,7 @@ object AppViewModelProvider {
 - [instance](): a created object from a class. In contrast, a class defines a blueprint, and an instance is one copy of that class at runtime.
 - [initializer]():
 - [viewModelFactory]():
+- [database migration]():
 
 # Terminology
 
@@ -531,8 +536,6 @@ object AppViewModelProvider {
 
 - [Activity](https://developer.android.com/guide/components/activities/intro-activities) The Activity class is a crucial component of an Android app, and the way activities are launched and put together is a fundamental part of the platform's application model. Unlike programming paradigms in which apps are launched with a main() method, the Android system initiates code in an Activity instance by invoking specific callback methods that correspond to specific stages of its lifecycle.
 
-
-- 
 - Thread vs. Coroutine
 
 | Concept       | Analogy                                                                                   |
