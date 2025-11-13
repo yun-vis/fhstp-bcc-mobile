@@ -17,7 +17,7 @@ Applications often need to perform multiple tasks at the same time, such as resp
 ## [Kotlin coroutines on Android](https://developer.android.com/kotlin/coroutines)
 A coroutine is a concurrency design pattern that you can use on Android to simplify code that executes asynchronously. Coroutines were added to Kotlin in version 1.3 and are based on established concepts from other languages.
 
-# Room Setup - Continued
+# Coroutine Experiment
 
 ## Step 1: Create a package called coroutines and a file called Coroutines
 
@@ -148,7 +148,6 @@ suspend fun getTemperature(): String {
 - [coroutineScope]()
 - [async]():
 - [Deferred](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/): Deferred result, which can be thought of as a future result that will be available at some point.
-- [Dispatchers]():
 - [delay()](): is part of Kotlin Coroutines, and it’s a suspending function — meaning it doesn’t block the thread but pauses the coroutine instead.
 
 | Scope / Builder                | Parent Scope                                                           | Lifecycle-Aware | Blocks Thread? | Structured Concurrency | Returns               | Use Case                                                         |
@@ -160,6 +159,8 @@ suspend fun getTemperature(): String {
 | **`lifecycleScope.launch {}`** | Activity / Fragment lifecycle                                          | ✅ Yes           | ❌ No           | ✅ Yes                  | `Job`                 | UI-safe coroutines that auto-cancel with lifecycle               |
 | **`coroutineScope {}`**        | Parent coroutine                                                       | ✅ Yes           | ❌ No           | ✅ Yes                  | `T` (result of block) | Group concurrent suspend calls safely inside suspend functions   |
 
+
+# Room Setup - Continued
 
 ## Step 2: Links to the database
 
@@ -189,6 +190,7 @@ interface ContactsDao {
     suspend fun findContentById(id: String): ContactEntity
 
     // SQL keywords are not case sensitive, keep it upper case to distinct from user-defined content
+    // A suspend function runs once and completes, while an observable (Flow/LiveData) query is continuous and never completes.
     @Query("SELECT * FROM contacts")
     fun getAllContacts(): Flow<List<ContactEntity>>
 
@@ -283,10 +285,12 @@ class ContactsViewModel(val repository: ContactRepository): ViewModel() {
 //    val contactsUiState = _contactsUiState.asStateFlow()
     // change from a flow to a stateflow, which collect a state
     // contacts return a flow and stateIn return a stateflow
+    // Flow: Cold asynchronous data stream. One-time data streams (e.g., network, events)
+    // StateFlow: Hot, state-holding observable data stream. UI state, data that changes over time.
     val contactsUiState = repository.contacts.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        // when it should start the state, and how long it should keep it
+        // When it should start the state, and how long it should keep it
         // it will remain 5 sec after the viewmodel scope is closed
         emptyList() // Define the initial value
     )
@@ -340,6 +344,13 @@ in ContactRepository.kt
 ```kotlin
     // update contacts
     // val contacts = contactsDao.getAllContacts()
+    // Flow<List<ContactEntity>> -> Flow<List<Contact>>
+    // Flow is an asynchronous stream of data that emits updates whenever the table changes.
+    // .map comes from the Kotlin Flow API and it transforms each emission 
+    // (each List<ContactEntity>) emitted by the Flow.
+    // It doesn’t change the flow behavior — the result is still a Flow.
+    // It only changes what each emission contains.
+
     val contacts = contactsDao.getAllContacts().map{ contactList ->
         contactList.map{entity->
             Contact(entity.id, entity.name, entity.telephoneNumber, entity.age)
@@ -357,6 +368,12 @@ in ContactsUI.kt
     // Log.i("ContactsApp", "Selected: ${state.selectedCardIndex}")
 
 // Step 2
+        // LazyColumn is a Jetpack Compose layout that displays a scrollable vertical list of items
+        // Lazy means only the visible items are composed and rendered.
+        // Room DAO (Flow<List<ContactEntity>>)
+        // -> Repository (Flow<List<Contact>>)
+        // -> ViewModel (StateFlow<List<Contact>> via stateIn)
+        // -> Compose UI (collectAsState())
         LazyColumn {
             // update, because state is now a contact
 //            itemsIndexed(state.contacts) { index, contact ->
@@ -414,6 +431,7 @@ import at.uastw.contactsapp.db.ContactsDatabase
 class ContactsApplication : Application() { // only one instance
 
     // by lazy: only execute this code once, once it is accessed somewhere
+    // Don’t create this value until I actually need it.
     val contactRepository by lazy {
         val contactsDao = ContactsDatabase.getDatabase(this).contactsDao()
         ContactRepository(contactsDao)
@@ -422,8 +440,9 @@ class ContactsApplication : Application() { // only one instance
 ```
 
 5. Connect this application somehow with our viewmodel. In viewModel(), we need to provide a factory. factory is an object that creates another object.
-Add New -> Kotline class -> Object and name it AppViewModelProvider
+Add New -> Kotlin class -> Object and name it AppViewModelProvider
 (put it under ui, because viewmodel belongs to the ui)
+This is a convenient way to define your custom ViewModel factory in one place, so it can be used anywhere in your app.
 
 in AppViewModelProvider.kt
 ```kotlin
@@ -436,9 +455,19 @@ import at.uastw.contactsapp.ContactsApplication
 
 object AppViewModelProvider {
 
+    // Creates a ViewModel factory that you can pass to your ViewModelProvider.
     val Factory = viewModelFactory {
+
+        // Inside the viewModelFactory, you define one or more initializers.
+        // Each initializer describes how to create a specific ViewModel type.
         initializer {
+
+            // this[APPLICATION_KEY]
+            // Inside an initializer, this refers to a CreationExtras object.
+            // CreationExtras is like a small key-value map containing extra context that the system passes to the factory.
+            // One of these keys is APPLICATION_KEY, which stores the current Application object.
             val contactsApplication = this[APPLICATION_KEY] as ContactsApplication
+            // create the ContactsViewModel
             ContactsViewModel(contactsApplication.contactRepository)
         }
     }
@@ -446,6 +475,8 @@ object AppViewModelProvider {
 ```
 
 6. Go to ContactsUI.kt
+
+By default, ViewModel constructors can only take the Application or no parameters at all. If you need to pass dependencies like a repository, you need a factory.
 
 ```kotlin
 @Composable
@@ -458,7 +489,7 @@ fun ContactsApp(
 
 Until here, the program should run without problems.
 
-7. From UI explorer -> more tool windows -> add app inspection. Select the current app and check database inspector. Double click on contacts, the it should show the current data. Since we use a FLow in Dao, we can update the name in the inspector. Observe that the app UI is also updated.
+7. From UI explorer -> more tool windows -> add app inspection. Select the current app and check database inspector. Double click on contacts, the it should show the current data and the customzied field name. Since we use a FLow in Dao, we can update the name in the inspector. Observe that the app UI is also updated.
 
 8. Create a detailed view model
 Add New -> Kotline class and name it ContactDetailViewModel
@@ -512,6 +543,7 @@ Remove present database
 # Keywords
 
 - [coroutine](): Lightweight, cooperative tasks managed by Kotlin’s coroutine library. created by Kotlin Coroutine Dispatcher.
+- [Dispatchers](https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html#dispatchers-and-threads): The coroutine context includes a coroutine dispatcher (see CoroutineDispatcher) that determines what thread or threads the corresponding coroutine uses for its execution. The coroutine dispatcher can confine coroutine execution to a specific thread, dispatch it to a thread pool, or let it run unconfined.
 - [launch]()
 - [suspend]()
 - [runBlocking]()
@@ -525,9 +557,11 @@ Remove present database
 - [Dispatchers.IO](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-i-o.html): Dispatchers.IO is a special coroutine dispatcher provided by Kotlin Coroutines designed for I/O operations like reading from or writing to a file, making network requests, or interacting with a database.
 - [object](): defines a singleton. In Kotlin, object means: “Create one and only one instance of this class automatically.”
 - [instance](): a created object from a class. In contrast, a class defines a blueprint, and an instance is one copy of that class at runtime.
+- [by lazy](): “Don’t create this value until I actually need it.”
 - [initializer]():
 - [viewModelFactory]():
 - [database migration]():
+
 
 # Terminology
 
