@@ -185,7 +185,7 @@ interface ContactsDao {
     suspend fun deleteContact(contactEntity: ContactEntity)
 
     // newly added
-    @Query("SELECT * FROM contacts WHERE _id = :id")
+    @Query("SELECT * FROM contacts WHERE id = :id")
     suspend fun findContentById(id: String): ContactEntity
 
     // SQL keywords are not case sensitive, keep it upper case to distinct from user-defined content
@@ -206,12 +206,13 @@ interface ContactsDao {
 in Contact.kt
 ```kotlin
 data class Contact(
+
     // newly added
     val id: Int = 0,
+
     val name: String,
-    // swap the following two
-    val age: Int,
-    val telephoneNumber: String
+    val telephoneNumber: String,
+    val age: Int
 )
 ```
 
@@ -222,13 +223,14 @@ package at.uastw.contactsapp.data
 
 import at.uastw.contactsapp.db.ContactEntity
 import at.uastw.contactsapp.db.ContactsDao
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlin.collections.plus
+//import kotlinx.coroutines.flow.MutableStateFlow
+//import kotlinx.coroutines.flow.asStateFlow
+//import kotlinx.coroutines.flow.update
+//import kotlin.collections.plus
 
 // Fake Database
-class ContactRepository(private val contactsDao: ContactsDao) {
+// Link contactsDao by passing it as a parameter
+class ContactRepository (private val contactsDao: ContactsDao){
 
     val names = listOf(
         "Max",
@@ -263,10 +265,9 @@ class ContactRepository(private val contactsDao: ContactsDao) {
 //    }
     suspend fun addRandomContact() {
         contactsDao.addContact(
-            ContactEntity(0, names.random(), 45, "+4357894")
+            ContactEntity(0, names.random(), "+4357894", 45)
         )
     }
-
 }
 ```
 
@@ -395,9 +396,9 @@ We can have many activities, but one application
 ```kotlin
         android:theme="@style/Theme.ContactsApp"
         android:name=".ContactsApplication">
-<!-- The . before the class name means relative to your app’s package name. So if 
-    your app’s package is com.example.mycontacts, then .ContactsApplication means 
-    -> com.example.mycontacts.ContactsApplication. -->
+    // The . before the class name means relative to your app’s package name. 
+    // So if your app’s package is com.example.mycontacts, then .ContactsApplication means 
+    // -> com.example.mycontacts.ContactsApplication. 
 ```
 
 1. We take the name and create a kotlin class with exactly the same name under the main package. The class must extend the Application to guarantee that it has one instance.
@@ -546,3 +547,4 @@ Remove present database
 # Open question
 
 - relationship between coroutines and threads
+- init{} vs. initialize{}

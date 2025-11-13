@@ -143,7 +143,7 @@ import androidx.room.PrimaryKey
 // @Entity is enough as the table name go with the class name by default. One can also define foreign key here.
 data class ContactEntity(
     @PrimaryKey(autoGenerate = true) // go with the next line
-    val _id: Int = 0, // database specific. set default to 0. shouldn't it be a default value null?
+    val id: Int = 0, // database specific. set default to 0. shouldn't it be a default value null?
     val name: String,
     
     // The @ColumnInfo annotation in Room is used to customize the column details of a field in your Entity (table), such as: The column name in the database.
@@ -174,25 +174,29 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ContactsDao {
 
-    //    @Insert
-    // There are strategies implemented
+        // Insert
     // @Upsert: if exist then update, otherwise insert
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun addContact(contactEntity: ContactEntity)
 
+    // Update
     @Update
     fun updateContact(contactEntity: ContactEntity)
 
+    // Delete
     @Delete
     fun deleteContact(contactEntity: ContactEntity)
 
+    // Queries
     // SQL keywords are not case sensitive, keep it upper case to distinct from user-defined content
     @Query("SELECT * FROM contacts")
     fun getAllContacts(): Flow<List<ContactEntity>>
 
     @Query("SELECT * FROM contacts WHERE name = :contactName")
-    // flow is a ds that will notify us about there is a change in the table. in practice, the flow will emit a new list of contact
+    // flow is a ds that will notify us about there is a change in the table. 
+    // In practice, the flow will emit a new list of contact
     fun findContactsWithName(contactName: String): Flow<List<ContactEntity>>
+
 //    fun main(){
 //        dao.findContactsWithName("Ali")
 //    }
@@ -222,9 +226,12 @@ import androidx.room.RoomDatabase
 )
 abstract class ContactsDatabase : RoomDatabase() { 
 // You must extend RoomDatabase to create a Room database class. It’s abstract because Room generates the actual implementation for you at compile time.
-    abstract fun contactsDao(): ContactsDao
 
-    // This is an abstract function that returns your DAO (ContactsDao). Room will automatically generate the code to return the DAO implementation when the database is built. You’ll use this to perform database operations like insert, update, query, delete, etc.
+    abstract fun contactsDao(): ContactsDao
+    // This is an abstract function that returns your DAO (ContactsDao). 
+    // Room will automatically generate the code to return the DAO implementation 
+    // when the database is built. You’ll use this to perform database operations 
+    // like insert, update, query, delete, etc.
 
     // in general, the same structure for every database
     // need to double check it
@@ -238,15 +245,22 @@ abstract class ContactsDatabase : RoomDatabase() {
         // concept from memory access
         // read the main memory RAM, instead of Cache
         // make sure to create one db instance per app (singleton pattern)
-        // @Volatile ensures that changes made to Instance by one thread are visible to all threads immediately. Instance holds a single reference to your database so multiple parts of your app don’t create multiple copies (which could corrupt the data).
+        // @Volatile ensures that changes made to Instance by one thread are visible 
+        // to all threads immediately. Instance holds a single reference to your 
+        // database so multiple parts of your app don’t create multiple copies (which
+        // could corrupt the data).
         @Volatile
         private var Instance: ContactsDatabase? = null
 
-        // Provides a global access point to your database. If the database hasn’t been created yet, it builds one.
+        // Provides a global access point to your database. If the database hasn’t been
+        // created yet, it builds one.
         fun getDatabase(context: Context): ContactsDatabase {
             // if the Instance is not null, return it, otherwise create a new database instance.
             // synchronized: only one thread can enter this block
-            // Checks if Instance is null. If yes, uses synchronized(this) to ensure only one thread at a time can create the database — prevents multiple instances in multithreaded environments.
+            // Checks if Instance is null. If yes, uses synchronized(this) to ensure 
+            // only one thread at a time can create the database — prevents multiple
+            // instances in multithreaded environments.
+            // ?: takes the right-hand value if the left-hand value is null (the elvis operator).
             return Instance ?: synchronized(this) {
                 // build database
                 // context: Application or Activity context. For the resources.
