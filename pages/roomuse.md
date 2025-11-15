@@ -6,7 +6,7 @@ title: "Room Usage"
 header:
   image: /assets/images/teaser/teaser.png
   caption: "Image credit: [**Yun**](http://yun-vis.net)"
-last_modified_at: 2025-11-04
+last_modified_at: 2025-11-14
 ---
 
 # Concept
@@ -187,7 +187,7 @@ interface ContactsDao {
 
     // newly added
     @Query("SELECT * FROM contacts WHERE id = :id")
-    suspend fun findContentById(id: String): ContactEntity
+    suspend fun findContentById(id: Int): ContactEntity
 
     // SQL keywords are not case sensitive, keep it upper case to distinct from user-defined content
     // A suspend function runs once and completes, while an observable (Flow/LiveData) query is continuous and never completes.
@@ -406,16 +406,19 @@ private fun ContactListItemPreview() {
 ```
 
 Until here, the code will run but crashes. check logcat
+
 1. check ContactsViewModel, we need a repository
 2. we create the ContactsViewModel by calling viewModel() in ContactUI.kt. Right-click on ContactsViewModel -> go to -> declaration or usage. To fix it, we need to create a dao somehow? go to ContactDatabase. We want to have single instance for it. For Android, we can use so-called application class.
 3. Go to app -> manifests
 We can have many activities, but one application
-```kotlin
+
+```xml
         android:theme="@style/Theme.ContactsApp"
         android:name=".ContactsApplication">
-    // The . before the class name means relative to your app’s package name. 
-    // So if your app’s package is com.example.mycontacts, then .ContactsApplication means 
-    // -> com.example.mycontacts.ContactsApplication. 
+<!-- The . before the class name means relative to your app’s package name. 
+     So if your app’s package is com.example.mycontacts, then .ContactsApplication means 
+     -> com.example.mycontacts.ContactsApplication. 
+-->     
 ```
 
 1. We take the name and create a kotlin class with exactly the same name under the main package. The class must extend the Application to guarantee that it has one instance.
@@ -491,48 +494,7 @@ Until here, the program should run without problems.
 
 7. From UI explorer -> more tool windows -> add app inspection. Select the current app and check database inspector. Double click on contacts, the it should show the current data and the customzied field name. Since we use a FLow in Dao, we can update the name in the inspector. Observe that the app UI is also updated.
 
-8. Create a detailed view model
-Add New -> Kotline class and name it ContactDetailViewModel
-
-in ContactDetailViewModel.kt
-```kotlin
-package at.uastw.contactsapp.ui
-
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import at.uastw.contactsapp.data.ContactRepository
-
-class ContactDetailViewModel(
-    private val savedStateHandle: SavedStateHandle,
-    private val repository: ContactRepository) : ViewModel()
-{
-    // can use to read contactId
-    // add to the nav controller
-    private val contactId: Int = savedStateHandle["contactId"] ?: 0
-}
-```
-
-in AppViewModelProvider.kt
-```kotlin
-object AppViewModelProvider {
-
-    val Factory = viewModelFactory {
-        initializer {
-            val contactsApplication = this[APPLICATION_KEY] as ContactsApplication
-            ContactsViewModel(contactsApplication.contactRepository)
-        }
-
-        initializer {
-            val contactsApplication = this[APPLICATION_KEY] as ContactsApplication
-            ContactDetailViewModel(
-                this.createSavedStateHandle(),
-                contactsApplication.contactRepository)
-        }
-    }
-}
-```
-
-Remove present database
+Remove existing database
 - Open Android Studio → View → Tool Windows → Device File Explorer.
 - Navigate to: /data/data/<your.package.name>/databases/
 - Right-click your database file (e.g., app_database)-> Delete.

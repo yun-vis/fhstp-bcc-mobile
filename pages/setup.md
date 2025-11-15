@@ -49,9 +49,10 @@ last_modified_at: 2025-08-22
 
 
 # Editor
+- Settings -> Editor -> Genegeral -> Soft-wrap these files: add *.kt (but this does not work, I use the next line to activate soft-wrap feature in the editor)
 - Word Wrap: Main Menu -> View -> Active Editor -> Soft-Wrap
-- 
-
+- Settings -> Editor -> Font -> 13 to 18
+ 
 # Terminology
 
 - Annotations: Annotations are a means of attaching metadata to code. [Link](https://kotlinlang.org/docs/annotations.html#)
